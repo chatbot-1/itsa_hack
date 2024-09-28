@@ -26,6 +26,10 @@ const PatientSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  firebaseUid: {
+    type: String,
+    required: true,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Patient', PatientSchema);

@@ -9,13 +9,18 @@ const parseDate = (dateString) => {
         throw new Error('Invalid date format');
     }
     const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1; 
+    const month = parseInt(parts[1], 10) - 1;
     const year = parseInt(parts[2], 10);
     return new Date(year, month, day);
 };
 
+
 router.post('/register', async (req, res) => {
-    const { name, email, password, phoneNumber, dateOfBirth } = req.body;
+    const { name, email, password, phoneNumber, dateOfBirth, medicalHistory, firebaseUid } = req.body;
+
+    if (!firebaseUid) {
+        return res.status(400).json({ error: "firebaseUid is required." });
+    }
 
     let parsedDateOfBirth;
     try {
@@ -33,6 +38,8 @@ router.post('/register', async (req, res) => {
             password: hashedPassword,
             phoneNumber,
             dateOfBirth: parsedDateOfBirth,
+            medicalHistory: medicalHistory || '',
+            firebaseUid,
         });
 
         await newPatient.save();

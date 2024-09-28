@@ -1,29 +1,48 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebaseConfig';
+import axios from 'axios';
 
-interface FormData {
-  name?: string;
+interface DoctorFormData {
+  name: string;
   email: string;
-  phone?: string;
-  specialization?: string;
-  licenseNumber?: string;
   password: string;
+  specialization: string;
+  experience: number;
+  licenseNumber: string;
+  contactNumber: string;
+  availability: string[];
 }
 
 const SignUpAsDoctor: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<DoctorFormData>({
+    name: '',
     email: '',
     password: '',
+    specialization: '',
+    experience: 0,
+    licenseNumber: '',
+    contactNumber: '',
+    availability: [],
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showAvailability, setShowAvailability] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleAvailabilityChange = (day: string) => {
+    setFormData((prevState) => {
+      const availability = prevState.availability.includes(day)
+        ? prevState.availability.filter((d) => d !== day)
+        : [...prevState.availability, day];
+      return { ...prevState, availability };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,22 +50,27 @@ const SignUpAsDoctor: React.FC = () => {
     setError(null);
     setLoading(true);
 
-    if (isLogin) {
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
-        console.log('Signed in doctor:', userCredential.user);
-        navigate('/');
-      } catch (err: any) {
-        setError(err.message);
-      }
-    } else {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        console.log('Doctor created:', userCredential.user);
-        navigate('/');
-      } catch (err: any) {
-        setError(err.message);
-      }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const { user } = userCredential;
+      const uid = user.uid;
+
+      await axios.post('http://localhost:5000/api/doctors/register', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        specialization: formData.specialization,
+        experience: formData.experience,
+        licenceNumber: formData.licenseNumber,
+        contactNumber: formData.contactNumber,
+        availability: formData.availability,
+        firebaseUid: uid,
+      });      
+
+      console.log('Doctor registered in MongoDB:', user);
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message);
     }
 
     setLoading(false);
@@ -54,24 +78,21 @@ const SignUpAsDoctor: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg flex flex-col">
-        <div className="flex justify-between border-b border-gray-300">
-          <button
-            className={`flex-1 py-4 text-lg font-semibold transition duration-300 ${isLogin ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'}`}
-            onClick={() => setIsLogin(true)}
-          >
-            Sign In
-          </button>
-          <button
-            className={`flex-1 py-4 text-lg font-semibold transition duration-300 ${!isLogin ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600'}`}
-            onClick={() => setIsLogin(false)}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        <div className={`p-6 ${isLogin ? 'block' : 'hidden'} flex-grow`}>
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg flex">
+        <div className="w-full p-6">
+          <h2 className="text-3xl font-bold text-indigo-600 mb-6 text-center">Sign Up as Doctor</h2>
           <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-semibold mb-2">Full Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+              />
+            </div>
             <div className="mb-4">
               <label className="block text-gray-700 font-semibold mb-2">Email Address</label>
               <input
@@ -89,45 +110,6 @@ const SignUpAsDoctor: React.FC = () => {
                 type="password"
                 name="password"
                 value={formData.password}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
-            >
-              {loading ? 'Signing In...' : 'Sign In'}
-            </button>
-          </form>
-          {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
-          <p className="mt-4 text-center text-gray-600">
-            Don't have an account? 
-            <button onClick={() => setIsLogin(false)} className="text-indigo-600 font-semibold hover:underline"> Sign Up</button>
-          </p>
-        </div>
-
-        <div className={`p-6 ${!isLogin ? 'block' : 'hidden'} flex-grow`}>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">Full Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
                 onChange={handleChange}
                 required
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
@@ -145,7 +127,18 @@ const SignUpAsDoctor: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">Medical License Number</label>
+              <label className="block text-gray-700 font-semibold mb-2">Experience (years)</label>
+              <input
+                type="number"
+                name="experience"
+                value={formData.experience}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-semibold mb-2">License Number</label>
               <input
                 type="text"
                 name="licenseNumber"
@@ -156,26 +149,42 @@ const SignUpAsDoctor: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">Email Address</label>
+              <label className="block text-gray-700 font-semibold mb-2">Contact Number</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="contactNumber"
+                value={formData.contactNumber}
                 onChange={handleChange}
                 required
                 className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
               />
             </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 font-semibold mb-2">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
-              />
+            <div className="mb-4">
+              <label className="block text-gray-700 font-semibold mb-2">Availability</label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowAvailability(!showAvailability)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                >
+                  {formData.availability.length > 0 ? formData.availability.join(', ') : 'Select Availability'}
+                </button>
+                {showAvailability && (
+                  <div className="absolute z-10 bg-white border border-gray-300 rounded-md mt-1 w-full">
+                    {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                      <div key={day} className="flex items-center p-2 hover:bg-gray-200">
+                        <input
+                          type="checkbox"
+                          checked={formData.availability.includes(day)}
+                          onChange={() => handleAvailabilityChange(day)}
+                          className="mr-2"
+                        />
+                        <label className="text-gray-700">{day}</label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <button
               type="submit"
@@ -184,12 +193,8 @@ const SignUpAsDoctor: React.FC = () => {
             >
               {loading ? 'Signing Up...' : 'Sign Up'}
             </button>
+            {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
           </form>
-          {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
-          <p className="mt-4 text-center text-gray-600">
-            Already have an account? 
-            <button onClick={() => setIsLogin(true)} className="text-indigo-600 font-semibold hover:underline"> Log In</button>
-          </p>
         </div>
       </div>
     </div>

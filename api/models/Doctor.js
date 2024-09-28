@@ -22,7 +22,7 @@ const DoctorSchema = new mongoose.Schema({
     type: Number, 
     required: true,
   },
-  licenceNumber: { 
+  licenceNumber: {
     type: String,
     required: true,
   },
@@ -32,6 +32,10 @@ const DoctorSchema = new mongoose.Schema({
   },
   availability: {
     type: [String], 
+    required: true,
+  },
+  firebaseUid: {
+    type: String,
     required: true,
   },
 }, { timestamps: true });

@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebaseConfig';
+import axios from 'axios';
 
 interface FormData {
   name?: string;
   email: string;
-  phone?: string;
+  phoneNumber?: string;
   password: string;
+  dateOfBirth?: string;
+  medicalHistory?: string;
 }
 
 const SignUpAsUser: React.FC = () => {
@@ -16,13 +19,14 @@ const SignUpAsUser: React.FC = () => {
     email: '',
     password: '',
   });
-  const [error, setError] = useState<string | null>(null); 
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+};
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +44,20 @@ const SignUpAsUser: React.FC = () => {
     } else {
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        console.log('User created:', userCredential.user);
+        const { user } = userCredential;
+        const uid = user.uid;
+
+        await axios.post('http://localhost:5000/api/patients/register', {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phoneNumber: formData.phoneNumber,
+          dateOfBirth: formData.dateOfBirth,
+          medicalHistory: formData.medicalHistory,
+          firebaseUid: uid,
+        });
+
+        console.log('User registered in MongoDB:', user);
         navigate('/');
       } catch (err: any) {
         setError(err.message);
@@ -103,10 +120,6 @@ const SignUpAsUser: React.FC = () => {
               </button>
             </form>
             {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
-            <p className="mt-4 text-center text-gray-600">
-              Don't have an account? 
-              <button onClick={() => setIsLogin(false)} className="text-indigo-600 font-semibold hover:underline"> Sign Up</button>
-            </p>
           </div>
 
           <div className={`p-6 ${!isLogin ? 'block' : 'hidden'}`}>
@@ -127,8 +140,8 @@ const SignUpAsUser: React.FC = () => {
                 <label className="block text-gray-700 font-semibold mb-2">Phone Number</label>
                 <input
                   type="tel"
-                  name="phone"
-                  value={formData.phone}
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
@@ -143,6 +156,27 @@ const SignUpAsUser: React.FC = () => {
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Date of Birth</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleChange}
+                  required
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Medical History</label>
+                <textarea
+                  name="medicalHistory"
+                  value={formData.medicalHistory}
+                  onChange={handleChange}
+                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  rows={3}
                 />
               </div>
               <div className="mb-6">
@@ -165,10 +199,6 @@ const SignUpAsUser: React.FC = () => {
               </button>
             </form>
             {error && <p className="mt-4 text-red-500 text-center">{error}</p>}
-            <p className="mt-4 text-center text-gray-600">
-              Already have an account? 
-              <button onClick={() => setIsLogin(true)} className="text-indigo-600 font-semibold hover:underline"> Log In</button>
-            </p>
           </div>
         </div>
       </div>
