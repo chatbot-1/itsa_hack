@@ -34,6 +34,10 @@ const DoctorSchema = new mongoose.Schema({
     type: [String], 
     required: true,
   },
+  userType: {
+    type: String,
+    default: 'doctor',
+  },
   firebaseUid: {
     type: String,
     required: true,

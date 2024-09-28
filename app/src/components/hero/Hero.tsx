@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import hero from "../../assets/hero.webp"
 
 const Hero = () => {
@@ -10,7 +11,7 @@ const Hero = () => {
               <p className="text-gray-600 mb-6">
                 Find the best doctors in your city and book your appointments online with ease.
               </p>
-              <a href="#book" className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Book Now</a>
+              <Link to="/visit-doctor"><a href="#book" className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Book Now</a></Link>
             </div>
             <div className="md:w-1/2 mt-8 md:mt-0">
             <img src={hero} alt="" />

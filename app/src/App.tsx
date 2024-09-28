@@ -12,6 +12,8 @@ import SignUpAsUser from './components/auth/SignUpAsUser';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from './firebaseConfig'; // Adjust the import path to your firebaseConfig
+import UserProfile from './profile/UserProfile';
+import DoctorProfile from './profile/DoctorProfile';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -31,6 +33,9 @@ function App() {
         <Route path="/" element={<><Hero /><About /><Service /><DoctorList /><Contact /></>} />
         <Route path="/signup-as-doctor" element={<SignUpAsDoctor />} />
         <Route path="/signup-as-user" element={<SignUpAsUser />} />
+        <Route path="/user-profile" element={<UserProfile />} />
+        <Route path="/doctor-profile" element={<DoctorProfile />} />
+        <Route path="/visit-doctor" element={<DoctorList />} />
       </Routes>
       <Footer />
     </Router>

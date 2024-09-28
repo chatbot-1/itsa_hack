@@ -26,6 +26,10 @@ const PatientSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  userType: {
+    type: String,
+    default: 'patient',
+  },
   firebaseUid: {
     type: String,
     required: true,

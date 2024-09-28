@@ -3,6 +3,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "fire
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../../firebaseConfig';
 import axios from 'axios';
+import { useUser } from '../../UserContext';
 
 interface FormData {
   name?: string;
@@ -14,6 +15,7 @@ interface FormData {
 }
 
 const SignUpAsUser: React.FC = () => {
+  const { setUid } = useUser();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -25,8 +27,7 @@ const SignUpAsUser: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-};
-
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,7 +37,14 @@ const SignUpAsUser: React.FC = () => {
     if (isLogin) {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+        const { user } = userCredential;
+        const uid = user.uid;
+        setUid(uid);
+        sessionStorage.setItem('uid', uid);
         console.log('Signed in user:', userCredential.user);
+        console.log('uid', uid);
+        const token = await user.getIdToken();
+        sessionStorage.setItem('token', token);
         navigate('/');
       } catch (err: any) {
         setError(err.message);
@@ -46,6 +54,11 @@ const SignUpAsUser: React.FC = () => {
         const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
         const { user } = userCredential;
         const uid = user.uid;
+        setUid(uid);
+        sessionStorage.setItem('uid', uid);
+        console.log('Signed up user:', userCredential.user);
+        const token = await user.getIdToken();
+        sessionStorage.setItem('token', token);
 
         await axios.post('http://localhost:5000/api/patients/register', {
           name: formData.name,
@@ -87,7 +100,6 @@ const SignUpAsUser: React.FC = () => {
           </div>
 
           <div className={`p-6 ${isLogin ? 'block' : 'hidden'}`}>
-            <h2 className="text-3xl font-bold text-indigo-600 mb-6 text-center">Sign In</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 font-semibold mb-2">Email Address</label>
@@ -97,7 +109,7 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <div className="mb-4">
@@ -108,7 +120,7 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <button
@@ -123,8 +135,7 @@ const SignUpAsUser: React.FC = () => {
           </div>
 
           <div className={`p-6 ${!isLogin ? 'block' : 'hidden'}`}>
-            <h2 className="text-3xl font-bold text-indigo-600 mb-6 text-center">Sign Up</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="mb-4">
                 <label className="block text-gray-700 font-semibold mb-2">Full Name</label>
                 <input
@@ -133,7 +144,7 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <div className="mb-4">
@@ -144,7 +155,7 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <div className="mb-4">
@@ -155,7 +166,7 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <div className="mb-4">
@@ -166,20 +177,20 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.dateOfBirth}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
-              <div className="mb-4">
+              <div className="mb-4 md:col-span-2">
                 <label className="block text-gray-700 font-semibold mb-2">Medical History</label>
                 <textarea
                   name="medicalHistory"
                   value={formData.medicalHistory}
                   onChange={handleChange}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                   rows={3}
                 />
               </div>
-              <div className="mb-6">
+              <div className="mb-6 md:col-span-2">
                 <label className="block text-gray-700 font-semibold mb-2">Password</label>
                 <input
                   type="password"
@@ -187,13 +198,13 @@ const SignUpAsUser: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
+                  className="mt-1 block w-full p-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition duration-300"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300"
+                className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition duration-300 md:col-span-2"
               >
                 {loading ? 'Signing Up...' : 'Sign Up'}
               </button>
