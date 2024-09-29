@@ -3,7 +3,7 @@ import hero from "../../assets/hero.webp"
 
 const Hero = () => {
   return (
-    <section className="pt-20 pb-10 bg-white">
+    <section className="pt-20 pb-10 mt-10 bg-white">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="md:w-1/2">

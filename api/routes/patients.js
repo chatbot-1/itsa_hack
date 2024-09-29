@@ -2,7 +2,7 @@ const express = require('express');
 const Patient = require('../models/Patient');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth')
+const Appointment = require('../models/Appointments');
 
 const parseDate = (dateString) => {
     const parts = dateString.split('-');
@@ -67,6 +67,23 @@ router.get('/user-profile/:firebaseUid', async (req, res) => {
         res.status(500).json({ error: "Error retrieving patient profile: " + error.message });
     }
 });
+
+router.get('/appointment-details/:patientId', async (req, res) => {
+    const { patientId } = req.params;
+
+    try {
+        const appointments = await Appointment.find({ patientId });
+
+        if (!appointments || appointments.length === 0) {
+            return res.status(404).json({ error: "No appointments found for this patient." });
+        }
+
+        res.status(200).json(appointments);
+    } catch (error) {
+        res.status(500).json({ error: "Error retrieving appointment details: " + error.message });
+    }
+});
+
 
 
 module.exports = router;

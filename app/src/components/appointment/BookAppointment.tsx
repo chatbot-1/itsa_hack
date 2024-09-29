@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface Doctor {
   _id: string;
@@ -18,10 +18,11 @@ interface Appointment {
 
 const BookAppointment: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { doctorId, patientId } = location.state || {};
   const [doctor, setDoctor] = useState<Doctor | null>(null);
-  const [date, setDate] = useState<string>('');
-  const [time, setTime] = useState<string>('');
+  const [date, setDate] = useState<string>("");
+  const [time, setTime] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +31,9 @@ const BookAppointment: React.FC = () => {
   const timeSlots = Array.from({ length: 8 }, (_, i) => {
     const hour = 10 + i;
     const startHour = hour % 12 === 0 ? 12 : hour % 12;
-    const startPeriod = hour < 12 ? 'AM' : 'PM';
+    const startPeriod = hour < 12 ? "AM" : "PM";
     const endHour = (hour + 1) % 12 === 0 ? 12 : (hour + 1) % 12;
-    const endPeriod = (hour + 1) < 12 ? 'AM' : 'PM';
+    const endPeriod = hour + 1 < 12 ? "AM" : "PM";
 
     return `${startHour} ${startPeriod} - ${endHour} ${endPeriod}`;
   });
@@ -40,10 +41,12 @@ const BookAppointment: React.FC = () => {
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const response = await axios.get<Doctor>(`http://localhost:5000/api/doctors/doctor-profile/${doctorId}`);
+        const response = await axios.get<Doctor>(
+          `http://localhost:5000/api/doctors/doctor-profile/${doctorId}`
+        );
         setDoctor(response.data);
       } catch (err) {
-        setError('Error fetching doctor details');
+        setError("Error fetching doctor details");
       }
     };
 
@@ -54,29 +57,37 @@ const BookAppointment: React.FC = () => {
 
   const fetchAvailableTimes = async (selectedDate: string) => {
     try {
-      const response = await axios.get<Appointment[]>(`http://localhost:5000/api/appointment/appointment/${doctorId}`);
-      
-      const normalizedSelectedDate = new Date(selectedDate).toLocaleDateString('en-CA', {
-        timeZone: 'Asia/Kolkata'
-      });
-  
-      const appointmentsForDate = response.data.filter(appointment => {
-        const appointmentDate = new Date(appointment.appointmentDate).toLocaleDateString('en-CA', {
-          timeZone: 'Asia/Kolkata'
+      const response = await axios.get<Appointment[]>(
+        `http://localhost:5000/api/appointment/appointment/${doctorId}`
+      );
+
+      const normalizedSelectedDate = new Date(selectedDate).toLocaleDateString(
+        "en-CA",
+        {
+          timeZone: "Asia/Kolkata",
+        }
+      );
+
+      const appointmentsForDate = response.data.filter((appointment) => {
+        const appointmentDate = new Date(
+          appointment.appointmentDate
+        ).toLocaleDateString("en-CA", {
+          timeZone: "Asia/Kolkata",
         });
         return appointmentDate === normalizedSelectedDate;
       });
-  
-      console.log('Appointments for selected date:', appointmentsForDate);
-  
-      const bookedTimesForDate = appointmentsForDate.map(appointment => appointment.appointmentTime);
-  
-      setBookedTimes(bookedTimesForDate); 
+
+      console.log("Appointments for selected date:", appointmentsForDate);
+
+      const bookedTimesForDate = appointmentsForDate.map(
+        (appointment) => appointment.appointmentTime
+      );
+
+      setBookedTimes(bookedTimesForDate);
     } catch (err) {
-      setError('Error fetching available appointment times');
+      console.log("All slots are available");
     }
   };
-  
 
   const handleDaySelect = (day: string, formattedDate: string) => {
     setSelectedDay(day);
@@ -88,51 +99,81 @@ const BookAppointment: React.FC = () => {
     e.preventDefault();
 
     if (!doctorId || !date || !time || !selectedDay) {
-      setError('Please fill in all fields and select an available day');
+      setError("Please fill in all fields and select an available day");
       return;
     }
 
     const selectedDate = new Date(date);
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', timeZone: 'Asia/Kolkata' };
-    const dayOfWeek = new Intl.DateTimeFormat('en-US', options).format(selectedDate);
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      timeZone: "Asia/Kolkata",
+    };
+    const dayOfWeek = new Intl.DateTimeFormat("en-US", options).format(
+      selectedDate
+    );
 
     if (dayOfWeek !== selectedDay) {
-      setError('The selected date is not available. Please select an available day.');
+      setError(
+        "The selected date is not available. Please select an available day."
+      );
       return;
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/appointment/appointment', {
-        patientId: patientId,
-        doctorId: doctorId,
-        appointmentDate: date,
-        appointmentTime: time,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/appointment/appointment",
+        {
+          patientId: patientId,
+          doctorId: doctorId,
+          appointmentDate: date,
+          appointmentTime: time,
+        }
+      );
 
       const data = response.data;
       console.log("Appointment data:", data);
-      setSuccess('Appointment booked successfully!');
-      setDate('');
-      setTime('');
+      setSuccess("Appointment booked successfully!");
+      setDate("");
+      setTime("");
       setSelectedDay(null);
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (err) {
-      setError('Error booking appointment');
+      setError("Error booking appointment");
     }
   };
 
   const renderCalendar = () => {
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     const today = new Date();
-    const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const currentDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
 
     return (
       <div className="grid grid-cols-7 gap-2">
         {daysOfWeek.map((day) => {
           const isAvailable = doctor?.availability.includes(day);
           const dateOfWeek = new Date(currentDate);
-          dateOfWeek.setDate(currentDate.getDate() + (daysOfWeek.indexOf(day) - currentDate.getDay()));
+          dateOfWeek.setDate(
+            currentDate.getDate() +
+              (daysOfWeek.indexOf(day) - currentDate.getDay())
+          );
 
-          const formattedDate = dateOfWeek.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          const formattedDate = dateOfWeek.toLocaleDateString("en-CA", {
+            timeZone: "Asia/Kolkata",
+          });
 
           return (
             <div
@@ -143,12 +184,22 @@ const BookAppointment: React.FC = () => {
                 }
               }}
               className={`p-4 text-center border rounded cursor-pointer 
-                          ${isAvailable ? (selectedDay === day ? 'bg-blue-500 text-white' : 'bg-green-200 hover:bg-green-300') : 'bg-gray-200 cursor-not-allowed'}
-                          ${selectedDay === day ? 'border-blue-500' : 'border-gray-300'}`}
+                          ${
+                            isAvailable
+                              ? selectedDay === day
+                                ? "bg-blue-500 text-white"
+                                : "bg-green-200 hover:bg-green-300"
+                              : "bg-gray-200 cursor-not-allowed"
+                          }
+                          ${
+                            selectedDay === day
+                              ? "border-blue-500"
+                              : "border-gray-300"
+                          }`}
             >
               <div>{day}</div>
-              <div className={`text-sm ${isAvailable ? '' : 'text-gray-500'}`}>
-                {isAvailable ? dateOfWeek.toLocaleDateString() : 'Unavailable'}
+              <div className={`text-sm ${isAvailable ? "" : "text-gray-500"}`}>
+                {isAvailable ? dateOfWeek.toLocaleDateString() : "Unavailable"}
               </div>
             </div>
           );
@@ -168,9 +219,15 @@ const BookAppointment: React.FC = () => {
           return (
             <div
               key={slot}
-              onClick={() => !isBooked && setTime(storedTime)} 
+              onClick={() => !isBooked && setTime(storedTime)}
               className={`p-4 text-center border rounded cursor-pointer 
-                          ${isBooked ? 'bg-gray-300 cursor-not-allowed' : (time === storedTime ? 'bg-blue-500 text-white' : 'bg-green-200 hover:bg-green-300')}`}
+                          ${
+                            isBooked
+                              ? "bg-gray-300 cursor-not-allowed"
+                              : time === storedTime
+                              ? "bg-blue-500 text-white"
+                              : "bg-green-200 hover:bg-green-300"
+                          }`}
             >
               {isBooked ? `${slot} Already Booked` : slot}
             </div>
@@ -187,12 +244,38 @@ const BookAppointment: React.FC = () => {
       {success && <div className="text-green-500">{success}</div>}
 
       {doctor && (
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold">{doctor.name}</h3>
-          <p>Specialization: {doctor.specialization}</p>
-          <p>Experience: {doctor.experience} years</p>
-          <p>Contact Number: {doctor.contactNumber}</p>
-          <p>Availability: {doctor.availability.join(', ')}</p>
+        <div className="mb-6 p-8 mt-10 bg-gradient-to-r from-blue-50 to-white rounded-xl shadow-lg">
+          <div className="flex items-center space-x-6 mb-4">
+            <div className="flex-shrink-0 bg-blue-500 h-16 w-16 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+              {doctor.name[0]}
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold text-gray-800">
+                {doctor.name}
+              </h3>
+              <p className="text-sm text-gray-500">{doctor.specialization}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+              <h4 className="text-gray-700 font-medium">Experience</h4>
+              <p className="text-lg font-semibold text-blue-600">
+                {doctor.experience} years
+              </p>
+            </div>
+            <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+              <h4 className="text-gray-700 font-medium">Contact</h4>
+              <p className="text-lg font-semibold text-blue-600">
+                {doctor.contactNumber}
+              </p>
+            </div>
+            <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+              <h4 className="text-gray-700 font-medium">Availability</h4>
+              <p className="text-lg font-semibold text-blue-600">
+                {doctor.availability.join(", ")}
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -223,13 +306,16 @@ const BookAppointment: React.FC = () => {
           <input
             type="text"
             value={time}
-            onChange={(e) => setTime(e.target.value)}
+            readOnly
             className="w-full border border-gray-300 p-2 rounded"
             required
           />
         </div>
 
-        <button type="submit" className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+        <button
+          type="submit"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
           Book Appointment
         </button>
       </form>

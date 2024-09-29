@@ -2,7 +2,7 @@ const express = require('express');
 const Doctor = require('../models/Doctor');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-const { verifyToken } = require('../middleware/auth')
+const Appointment = require('../models/Appointments');
 
 router.post('/register', async (req, res) => {
   const { name, email, password, specialization, experience, licenceNumber, contactNumber, availability, firebaseUid } = req.body;
@@ -61,6 +61,22 @@ router.get('/all-doctors', async (req, res) => {
   } catch (error) {
     console.error("Error fetching all doctors:", error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/appointment-details/:doctorId', async (req, res) => {
+  const { doctorId } = req.params;
+
+  try {
+      const appointments = await Appointment.find({ doctorId });
+
+      if (!appointments || appointments.length === 0) {
+          return res.status(404).json({ error: "No appointments found for this doctor." });
+      }
+
+      res.status(200).json(appointments);
+  } catch (error) {
+      res.status(500).json({ error: "Error retrieving appointment details: " + error.message });
   }
 });
 
