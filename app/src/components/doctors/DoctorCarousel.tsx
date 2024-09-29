@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Slider from 'react-slick';
 import doctorImage from "../../assets/doctor.jpg";
+import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth"; // Import Firebase Auth
 
 interface Doctor {
   image: string;
@@ -11,6 +13,7 @@ interface Doctor {
   specialization: string;
   experience: number;
   contactNumber: string;
+  firebaseUid: string;
 }
 
 const NextArrow = (props: any) => {
@@ -20,7 +23,7 @@ const NextArrow = (props: any) => {
         className="slick-next absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:bg-blue-700 transition duration-200"
         onClick={onClick}
       >
-        &#x2192; {/* Right Arrow */}
+        &#x2192;
       </button>
     );
 };
@@ -32,15 +35,17 @@ const PrevArrow = (props: any) => {
         className="slick-prev absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:bg-blue-700 transition duration-200"
         onClick={onClick}
       >
-        &#x2190; {/* Left Arrow */}
+        &#x2190;
       </button>
     );
 };
 
 const DoctorCarousel: React.FC = () => {
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -59,6 +64,16 @@ const DoctorCarousel: React.FC = () => {
     };
 
     fetchDoctors();
+  }, []);
+
+  // Check authentication status
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setIsAuthenticated(!!user); // Set isAuthenticated based on user presence
+    });
+
+    return () => unsubscribe(); // Cleanup the subscription on component unmount
   }, []);
 
   if (loading) return <div>Loading...</div>;
@@ -96,7 +111,17 @@ const DoctorCarousel: React.FC = () => {
   };
 
   const handleBookAppointment = (doctorId: string) => {
-    alert(`Booking appointment with doctor ID: ${doctorId}`);
+    if (isAuthenticated) {
+      const patientId = sessionStorage.getItem("uid");
+      navigate("/book-appointment", {
+        state: {
+          doctorId: doctorId,
+          patientId: patientId,
+        },
+      });
+    } else {
+      navigate("/signup-as-user");
+    }
   };
 
   return (
@@ -129,7 +154,7 @@ const DoctorCarousel: React.FC = () => {
                       <p className="text-gray-600">Experience: {doctor.experience} years</p>
                       <p className="text-gray-600">Contact: {doctor.contactNumber}</p>
                       <button
-                        onClick={() => handleBookAppointment(doctor._id)}
+                        onClick={() => handleBookAppointment(doctor.firebaseUid)}
                         className="mt-4 bg-blue-500 text-white py-1 px-4 rounded hover:bg-blue-600 transition duration-200"
                       >
                         Book Appointment
