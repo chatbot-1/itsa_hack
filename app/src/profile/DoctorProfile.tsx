@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const DoctorProfile: React.FC = () => {
   const [doctor, setDoctor] = useState<any>(null);
-  const [appointments, setAppointments] = useState<any[]>([]); 
+  const [appointments, setAppointments] = useState<any[]>([]);
   const firebaseUid = sessionStorage.getItem("uid");
 
   useEffect(() => {
@@ -13,14 +13,15 @@ const DoctorProfile: React.FC = () => {
           `http://localhost:5000/api/doctors/doctor-profile/${firebaseUid}`
         );
         setDoctor(response.data);
+
         const appointmentResponse = await axios.get(
-          `http://localhost:5000/api/doctors/appointment-details/${firebaseUid}` 
+          `http://localhost:5000/api/doctors/appointment-details/${firebaseUid}`
         );
-        
+
         if (Array.isArray(appointmentResponse.data)) {
           setAppointments(appointmentResponse.data);
         } else {
-          setAppointments([]); 
+          setAppointments([]);
           console.error('Unexpected response format for appointments:', appointmentResponse.data);
         }
       } catch (error) {
@@ -31,6 +32,28 @@ const DoctorProfile: React.FC = () => {
     fetchDoctorProfile();
   }, [firebaseUid]);
 
+  const getAppointmentTag = (appointmentDate: string) => {
+    const today = new Date();
+    const appointment = new Date(appointmentDate);
+
+    if (appointment.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (appointment < today) {
+      return 'Past';
+    } else {
+      return 'Upcoming';
+    }
+  };
+
+  const getTagColor = (appointmentDate: string) => {
+    const tag = getAppointmentTag(appointmentDate);
+    return tag === 'Past'
+      ? 'text-red-500'
+      : tag === 'Today'
+      ? 'text-blue-500'
+      : 'text-green-500';
+  };
+
   if (!doctor) {
     return <div className="flex justify-center items-center min-h-screen bg-gray-100">Loading...</div>;
   }
@@ -38,7 +61,7 @@ const DoctorProfile: React.FC = () => {
   return (
     <div className="flex flex-col justify-start items-center min-h-screen bg-gray-50 p-8">
       <h2 className="text-4xl font-bold text-indigo-600 mb-8 text-center">Doctor Profile</h2>
-      
+
       <div className="flex w-full max-w-6xl">
         <div className="flex-1 mr-4">
           <div className="flex flex-col space-y-6">
@@ -83,6 +106,9 @@ const DoctorProfile: React.FC = () => {
                 <div key={appointment._id} className="p-6 bg-gray-200 rounded-md">
                   <p className="text-gray-700 text-lg"><strong>Patient:</strong> {appointment.patientName || "Unknown"}</p>
                   <p className="text-gray-700 text-lg"><strong>Date:</strong> {new Date(appointment.appointmentDate).toLocaleDateString()}</p>
+                  <p className={`text-lg font-semibold ${getTagColor(appointment.appointmentDate)}`}>
+                    Status: {getAppointmentTag(appointment.appointmentDate)}
+                  </p>
                   {appointment.reason && <p className="text-gray-700 text-lg"><strong>Reason:</strong> {appointment.reason}</p>}
                 </div>
               ))}

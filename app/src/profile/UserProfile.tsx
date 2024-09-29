@@ -3,8 +3,8 @@ import axios from 'axios';
 
 const UserProfile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
-  const [appointments, setAppointments] = useState<any[]>([]); 
-  const firebaseUid = sessionStorage.getItem("uid");
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const firebaseUid = sessionStorage.getItem('uid');
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -15,13 +15,13 @@ const UserProfile: React.FC = () => {
         setUser(response.data);
 
         const appointmentResponse = await axios.get(
-          `http://localhost:5000/api/patients/appointment-details/${firebaseUid}` 
+          `http://localhost:5000/api/patients/appointment-details/${firebaseUid}`
         );
-        
+
         if (Array.isArray(appointmentResponse.data)) {
           setAppointments(appointmentResponse.data);
         } else {
-          setAppointments([]); 
+          setAppointments([]);
           console.error('Unexpected response format for appointments:', appointmentResponse.data);
         }
       } catch (error) {
@@ -32,6 +32,19 @@ const UserProfile: React.FC = () => {
     fetchUserProfile();
   }, [firebaseUid]);
 
+  const getAppointmentTag = (appointmentDate: string) => {
+    const today = new Date();
+    const appointmentDay = new Date(appointmentDate);
+
+    if (appointmentDay.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (appointmentDay < today) {
+      return 'Past';
+    } else {
+      return 'Upcoming';
+    }
+  };
+
   if (!user) {
     return <div className="flex justify-center items-center min-h-screen bg-gray-100">Loading...</div>;
   }
@@ -39,7 +52,7 @@ const UserProfile: React.FC = () => {
   return (
     <div className="flex flex-col justify-start items-center min-h-screen bg-gray-50 p-8 ">
       <h2 className="text-4xl font-bold text-indigo-600 mb-8 text-center">User Profile</h2>
-      
+
       <div className="flex w-full max-w-6xl">
         <div className="flex-1 mr-4">
           <div className="flex flex-col space-y-6">
@@ -70,9 +83,32 @@ const UserProfile: React.FC = () => {
             <div className="flex flex-col space-y-6">
               {appointments.map((appointment) => (
                 <div key={appointment._id} className="p-6 bg-gray-200 rounded-md">
-                  <p className="text-gray-700 text-lg"><strong>Doctor:</strong> {appointment.doctorName || "Unknown"}</p>
-                  <p className="text-gray-700 text-lg"><strong>Date:</strong> {new Date(appointment.appointmentDate).toLocaleDateString()}</p>
-                  {appointment.reason && <p className="text-gray-700 text-lg"><strong>Reason:</strong> {appointment.reason}</p>}
+                  <p className="text-gray-700 text-lg">
+                    <strong>Doctor:</strong> {appointment.doctorName || 'Unknown'}
+                  </p>
+                  <p className="text-gray-700 text-lg">
+                    <strong>Date:</strong>{' '}
+                    {new Date(appointment.appointmentDate).toLocaleDateString()}
+                  </p>
+                  <p className="text-gray-700 text-lg">
+                    <strong>Status:</strong>{' '}
+                    <span
+                      className={
+                        getAppointmentTag(appointment.appointmentDate) === 'Past'
+                          ? 'text-red-500'
+                          : getAppointmentTag(appointment.appointmentDate) === 'Today'
+                          ? 'text-blue-500'
+                          : 'text-green-500'
+                      }
+                    >
+                      {getAppointmentTag(appointment.appointmentDate)}
+                    </span>
+                  </p>
+                  {appointment.reason && (
+                    <p className="text-gray-700 text-lg">
+                      <strong>Reason:</strong> {appointment.reason}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
