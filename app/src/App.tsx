@@ -11,9 +11,10 @@ import SignUpAsDoctor from './components/auth/SignUpAsDoctor';
 import SignUpAsUser from './components/auth/SignUpAsUser';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from './firebaseConfig'; // Adjust the import path to your firebaseConfig
+import { auth } from './firebaseConfig';
 import UserProfile from './profile/UserProfile';
 import DoctorProfile from './profile/DoctorProfile';
+import DoctorCarousel from './components/doctors/DoctorCarousel';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -30,7 +31,7 @@ function App() {
     <Router>
       <Navbar user={user} />
       <Routes>
-        <Route path="/" element={<><Hero /><About /><Service /><DoctorList /><Contact /></>} />
+        <Route path="/" element={<><Hero /><About /><Service /><DoctorCarousel /><Contact /></>} />
         <Route path="/signup-as-doctor" element={<SignUpAsDoctor />} />
         <Route path="/signup-as-user" element={<SignUpAsUser />} />
         <Route path="/user-profile" element={<UserProfile />} />

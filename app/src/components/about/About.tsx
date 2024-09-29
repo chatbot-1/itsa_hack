@@ -1,3 +1,5 @@
+import back from "../../assets/back.webp"
+
 const About = () => {
   return (
     <section id="about" className="py-16 bg-gray-50">
@@ -5,7 +7,9 @@ const About = () => {
           <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">About Us</h2>
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-8 md:mb-0">
-              <div className="bg-gray-300 h-64 md:h-80 rounded-lg"></div>
+              <div className="bg-gray-300 h-64 md:h-80 rounded-lg">
+                <img src={back} alt="" />
+              </div>
             </div>
             <div className="md:w-1/2 md:pl-10">
               <p className="text-gray-600 mb-4">
