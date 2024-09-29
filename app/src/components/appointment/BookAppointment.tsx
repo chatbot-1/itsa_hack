@@ -55,6 +55,26 @@ const BookAppointment: React.FC = () => {
     }
   }, [doctorId]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  
+    const fetchDoctor = async () => {
+      try {
+        const response = await axios.get<Doctor>(
+          `http://localhost:5000/api/doctors/doctor-profile/${doctorId}`
+        );
+        setDoctor(response.data);
+      } catch (err) {
+        setError("Error fetching doctor details");
+      }
+    };
+  
+    if (doctorId) {
+      fetchDoctor();
+    }
+  }, [doctorId]);
+  
+
   const fetchAvailableTimes = async (selectedDate: string) => {
     try {
       const response = await axios.get<Appointment[]>(

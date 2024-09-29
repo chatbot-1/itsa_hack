@@ -10,13 +10,9 @@ const Hero = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      setIsAuthenticated(!!user);
     });
-    
+
     return () => unsubscribe();
   }, [auth]);
 
@@ -29,23 +25,30 @@ const Hero = () => {
   };
 
   return (
-    <section className="pt-20 pb-10 mt-10 bg-white">
+    <section className="bg-white py-32 mt-10"> {/* Increased vertical padding */}
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="md:w-1/2">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">Easy Appointment Scheduling</h1>
-            <p className="text-gray-600 mb-6">
-              Find the best doctors in your city and book your appointments online with ease.
+          <div className="md:w-1/2 space-y-6">
+            <h1 className="text-5xl font-extrabold text-gray-800 leading-tight">
+              Easy Appointment Scheduling
+            </h1>
+            <p className="text-lg text-gray-600">
+              Find the best doctors in your city and book your appointments
+              online with ease. Your health is our priority.
             </p>
             <button
               onClick={handleBookNowClick}
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 transform hover:scale-105"
             >
               Book Now
             </button>
           </div>
-          <div className="md:w-1/2 mt-8 md:mt-0">
-            <img src={hero} alt="Doctor booking" />
+          <div className="md:w-1/3 mt-8 md:mt-0"> {/* Adjusted image width */}
+            <img
+              src={hero}
+              alt="Doctor booking"
+              className="rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
+            />
           </div>
         </div>
       </div>
