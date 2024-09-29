@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const patientRoutes = require('./routes/patients');
 const doctorRoutes = require('./routes/doctors');
+const appointmentRoutes = require('./routes/appointment') 
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 app.use('/api/patients', patientRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/appointment', appointmentRoutes); 
 
 app.get('/', (req, res) => {
   res.send('API is working!');

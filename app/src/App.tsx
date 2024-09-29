@@ -15,6 +15,7 @@ import { auth } from './firebaseConfig';
 import UserProfile from './profile/UserProfile';
 import DoctorProfile from './profile/DoctorProfile';
 import DoctorCarousel from './components/doctors/DoctorCarousel';
+import BookAppointment from './components/appointment/BookAppointment';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -37,6 +38,7 @@ function App() {
         <Route path="/user-profile" element={<UserProfile />} />
         <Route path="/doctor-profile" element={<DoctorProfile />} />
         <Route path="/visit-doctor" element={<DoctorList />} />
+        <Route path="/book-appointment" element={<BookAppointment />} />
       </Routes>
       <Footer />
     </Router>

@@ -96,7 +96,6 @@ const DoctorCarousel: React.FC = () => {
   };
 
   const handleBookAppointment = (doctorId: string) => {
-    // Implement your booking logic here
     alert(`Booking appointment with doctor ID: ${doctorId}`);
   };
 
